@@ -105,19 +105,35 @@ var mainState = {
     update: function() {
 
         //keyboard mapping
+        var upKey = game.input.keyboard.addKey(Phaser.Keyboard.W);
+        var downKey = game.input.keyboard.addKey(Phaser.Keyboard.S);
         var leftKey = game.input.keyboard.addKey(Phaser.Keyboard.A);
         var rightKey = game.input.keyboard.addKey(Phaser.Keyboard.D);
 
-        if (leftKey.isDown && this.player.x > 0) {
+        var altUpKey = game.input.keyboard.addKey(Phaser.Keyboard.UP);
+        var altDownKey = game.input.keyboard.addKey(Phaser.Keyboard.DOWN);
+        var altLeftKey = game.input.keyboard.addKey(Phaser.Keyboard.LEFT);
+        var altRightKey = game.input.keyboard.addKey(Phaser.Keyboard.RIGHT);
+
+        //left
+        if (leftKey.isDown || altLeftKey.isDown && this.player.x > 0) {
             this.player.x -= this.playerSpeed;
         } else if (leftKey.isDown && this.player.x < 400) {
             this.player.x = 400;
         }
-
-        if (rightKey.isDown && this.player.x < 400) {
+        //right
+        if (rightKey.isDown || altRightKey.isDown && this.player.x < 400) {
             this.player.x += this.playerSpeed;
         } else if (rightKey.isDown && this.player.x > 0) {
             this.player.x = 0;
+        }
+        //up
+        if (upKey.isDown || altUpKey.isDown && this.player.y > 15) {
+            this.player.y -= this.playerSpeed;
+        }
+        //down
+        if (downKey.isDown || altDownKey.isDown && this.player.y < 425) {
+            this.player.y += this.playerSpeed;
         }
         //
 
