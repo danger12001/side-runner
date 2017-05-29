@@ -8,7 +8,11 @@ var mainState = {
 
     create: function() {
         this.score = 0;
-        this.labelScore = game.add.text(20, 20, "0", {
+        this.labelScore = game.add.text(20, 60, "0", {
+            font: "30px Arial",
+            fill: "#ffffff"
+        });
+        this.labelHealth = game.add.text(20, 20, "Health: 100", {
             font: "30px Arial",
             fill: "#ffffff"
         });
@@ -19,6 +23,7 @@ var mainState = {
         this.blockGravity = 800;
         this.blockSpeed = 100;
         this.playerSpeed = 5;
+        this.playerHealth = 100;
         this.timerResetPoint = 800;
 
         //adding blocks
@@ -29,7 +34,7 @@ var mainState = {
         game.physics.startSystem(Phaser.Physics.ARCADE);
 
         // adding player and Initializing physics
-        this.player = game.add.sprite(100, 350, 'player');
+        this.player = game.add.sprite(170, 350, 'player');
         game.physics.arcade.enable(this.player);
 
         //game loop itself
@@ -43,7 +48,7 @@ var mainState = {
         this.score += 1;
         this.labelScore.text = this.score;
 
-        // allows an increase in speed every 10 points
+        // allows an increase in speed every 5 points
         var nextLevel = false;
         if (this.score % 5 === 0) {
             nextLevel = true;
@@ -99,7 +104,16 @@ var mainState = {
 
     restartGame: function() {
         // Start the 'main' state, which restarts the game
-        game.state.start('main');
+        console.log(this.playerHealth);
+        if(this.playerHealth > 0){
+          console.log(this.playerHealth);
+          this.playerHealth -= 1;
+          this.labelHealth.text = 'Health: ' + this.playerHealth;
+        } else {
+          this.labelHealth.text = 'Health: ' + this.playerHealth;
+          console.log(this.playerHealth, 'reset');
+          game.state.start('main');
+        }
     },
 
     update: function() {
