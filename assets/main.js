@@ -4,15 +4,20 @@ var mainState = {
 
         game.load.image('player', 'player.png');
         game.load.image('block', 'floor.png');
+        game.load.image('coin', 'coin.png');
     },
 
     create: function() {
         this.score = 0;
-        this.labelScore = game.add.text(20, 60, "0", {
+        this.labelScore = game.add.text(20, 100, "Score: 0", {
             font: "30px Arial",
             fill: "#ffffff"
         });
         this.labelHealth = game.add.text(20, 20, "Health: 100", {
+            font: "30px Arial",
+            fill: "#ffffff"
+        });
+        this.labelUpgrades = game.add.text(20, 60, "Upgrade Points: 0", {
             font: "30px Arial",
             fill: "#ffffff"
         });
@@ -22,12 +27,15 @@ var mainState = {
 
         this.blockGravity = 800;
         this.blockSpeed = 100;
+        this.upgrades = 0;
+        this.collectableRate = 95;
         this.playerSpeed = 5;
         this.playerHealth = 100;
         this.timerResetPoint = 800;
 
         //adding blocks
         this.blocks = game.add.group();
+        this.coins = game.add.group();
 
         //background and physics engine
         game.stage.backgroundColor = '#71c5cf';
@@ -42,11 +50,19 @@ var mainState = {
 
 
     },
+    removeCoin: function(coin){
+      coin.destroy();
+    },
+    collectCoin: function(player, coin){
+      coin.destroy();
+      this.upgrades += 1;
+      this.labelUpgrades.text = 'Upgrade Points: ' + this.upgrades;
+    },
     removeBlock: function(block) {
         //remove block an increase score
         block.destroy();
         this.score += 1;
-        this.labelScore.text = this.score;
+        this.labelScore.text = 'Score: ' + this.score;
 
         // allows an increase in speed every 5 points
         var nextLevel = false;
@@ -81,14 +97,32 @@ var mainState = {
                 'Block Speed: ': this.blockSpeed,
                 'Player Speed: ': this.playerSpeed
             };
-            console.log(stats);
+            // console.log(stats);
         }
 
     },
 
     addBlock: function() {
+        //random number to check if coin should spawn
+        var collectable = Math.floor(Math.random() * 100) + 1;
+
         //picks a random point on the x axis.
         var rand = Math.floor(Math.random() * 399) + 1;
+
+        if(collectable > this.collectableRate){
+          this.coin = game.add.sprite(rand, 0, 'coin');
+          //adds sprite to group.
+          this.coins.add(this.coin);
+
+          //enable physics
+          game.physics.arcade.enable(this.coin);
+          this.coin.body.gravity.y = this.blockGravity;
+          this.coin.body.velocity.y = this.blockSpeed;
+          //event checking world bounds of block and removes them.
+          this.coin.checkWorldBounds = true;
+          this.coin.events.onOutOfBounds.add(this.removeCoin, this);
+        } else {
+
         this.block = game.add.sprite(rand, 0, 'block');
         //adds sprite to group.
         this.blocks.add(this.block);
@@ -100,18 +134,16 @@ var mainState = {
         //event checking world bounds of block and removes them.
         this.block.checkWorldBounds = true;
         this.block.events.onOutOfBounds.add(this.removeBlock, this);
+      }
     },
 
     restartGame: function() {
         // Start the 'main' state, which restarts the game
-        console.log(this.playerHealth);
         if(this.playerHealth > 0){
-          console.log(this.playerHealth);
           this.playerHealth -= 1;
           this.labelHealth.text = 'Health: ' + this.playerHealth;
         } else {
           this.labelHealth.text = 'Health: ' + this.playerHealth;
-          console.log(this.playerHealth, 'reset');
           game.state.start('main');
         }
     },
@@ -153,7 +185,11 @@ var mainState = {
 
         //game over collision
         game.physics.arcade.overlap(
+          this.player, this.coins, this.collectCoin, null, this);
+
+        game.physics.arcade.overlap(
             this.player, this.blocks, this.restartGame, null, this);
+
 
     },
 };
