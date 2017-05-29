@@ -7,8 +7,19 @@ var mainState = {
     },
 
     create: function() {
+        this.score = 0;
+        this.labelScore = game.add.text(20, 20, "0", {
+            font: "30px Arial",
+            fill: "#ffffff"
+        });
         //lower the duration the faster the speed of the game.
-        this.duration = 1200;
+
+
+
+        this.blockGravity = 800;
+        this.blockSpeed = 100;
+        this.playerSpeed = 5;
+        this.timerResetPoint = 800;
 
         //adding blocks
         this.blocks = game.add.group();
@@ -22,19 +33,52 @@ var mainState = {
         game.physics.arcade.enable(this.player);
 
         //game loop itself
-        this.timer = game.time.events.loop(this.duration, this.addBlock, this);
+        this.timer = game.time.events.loop(1000, this.addBlock, this);
 
-        this.score = 0;
-        this.labelScore = game.add.text(20, 20, "0", {
-            font: "30px Arial",
-            fill: "#ffffff"
-        });
 
     },
     removeBlock: function(block) {
+        //remove block an increase score
         block.destroy();
         this.score += 1;
         this.labelScore.text = this.score;
+
+        // allows an increase in speed every 10 points
+        var nextLevel = false;
+        if (this.score % 5 === 0) {
+            nextLevel = true;
+        } else {
+            nextLevel = false;
+        }
+
+
+        if (nextLevel) {
+            if (this.timer.delay > this.timerResetPoint) {
+                this.blockGravity += 25;
+                this.blockSpeed += 50;
+                this.timer.delay -= 50;
+            } else {
+                //reset game loop to origin speed however speed of blocks falling remains the same.
+                if (this.timerResetPoint > 0) {
+                    this.timer.delay += 150;
+                    this.timerResetPoint -= 100;
+                } else {
+                    //reset things to a manageable point when it gets impossible.
+                    this.timer.delay = 800;
+                    this.timerResetPoint = 500;
+                }
+            }
+        } else {
+            var stats = {
+                'Loop Delay: ': this.timer.delay,
+                'Block Gravity: ': this.blockGravity,
+                'Reset Point: ': this.timerResetPoint,
+                'Block Speed: ': this.blockSpeed,
+                'Player Speed: ': this.playerSpeed
+            };
+            console.log(stats);
+        }
+
     },
 
     addBlock: function() {
@@ -46,8 +90,8 @@ var mainState = {
 
         //enable physics
         game.physics.arcade.enable(this.block);
-        this.block.body.gravity.y = 1000;
-
+        this.block.body.gravity.y = this.blockGravity;
+        this.block.body.velocity.y = this.blockSpeed;
         //event checking world bounds of block and removes them.
         this.block.checkWorldBounds = true;
         this.block.events.onOutOfBounds.add(this.removeBlock, this);
@@ -65,18 +109,17 @@ var mainState = {
         var rightKey = game.input.keyboard.addKey(Phaser.Keyboard.D);
 
         if (leftKey.isDown && this.player.x > 0) {
-            this.player.x -= 5;
+            this.player.x -= this.playerSpeed;
         } else if (leftKey.isDown && this.player.x < 400) {
             this.player.x = 400;
         }
 
         if (rightKey.isDown && this.player.x < 400) {
-            this.player.x += 5;
+            this.player.x += this.playerSpeed;
         } else if (rightKey.isDown && this.player.x > 0) {
             this.player.x = 0;
         }
         //
-
 
         //game over collision
         game.physics.arcade.overlap(
