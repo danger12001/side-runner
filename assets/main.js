@@ -14,8 +14,10 @@ var mainState = {
             var lastDelay = [];
             function actionOnClick() {
               if(!this.paused){
-                game.stage.backgroundColor = '#c5c5c5';
                 console.log('paused');
+                this.player.kill();
+                this.block.kill();
+                game.stage.backgroundColor = '#c5c5c5';
                 lastDelay[0] = this.timer.delay;
                 this.paused = !this.paused;
                 game.time.events.remove(this.timer);
@@ -23,6 +25,8 @@ var mainState = {
               } else {
               game.stage.backgroundColor = '#71c5cf';
                 console.log('resumed');
+                this.player.revive();
+                this.block.revive();
                 this.paused = !this.paused;
                 this.timer = game.time.events.loop(lastDelay[0], this.addBlock, this);
 
