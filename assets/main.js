@@ -6,25 +6,28 @@ var mainState = {
             game.load.image('button', 'player.png');
             game.load.image('block', 'floor.png');
             game.load.image('coin', 'coin.png');
+            game.load.audio('coin', 'ping.mp3');
+            game.load.audio('explode', 'explode1.wav');
+            game.load.audio('hit', 'explosion.mp3');
         },
         create: function() {
+          this.sound = game.add.audio('hit');
+          this.hit = game.add.audio('explode');
+          this.coinSound = game.add.audio('coin');
           var button;
             button = game.add.button(325, 20, 'button', actionOnClick, this, 2, 1, 0);
 
             var lastDelay = [];
             function actionOnClick() {
               if(!this.paused){
-                console.log('paused');
                 this.player.kill();
                 this.block.kill();
                 game.stage.backgroundColor = '#c5c5c5';
                 lastDelay[0] = this.timer.delay;
                 this.paused = !this.paused;
                 game.time.events.remove(this.timer);
-                console.log(this.timer);
               } else {
               game.stage.backgroundColor = '#71c5cf';
-                console.log('resumed');
                 this.player.revive();
                 this.block.revive();
                 this.paused = !this.paused;
@@ -89,17 +92,18 @@ var mainState = {
     collectCoin: function(player, coin) {
         coin.destroy();
         this.upgrades += 1;
+        this.coinSound.play();
         this.labelUpgrades.text = 'Upgrade Points: ' + this.upgrades;
     },
     removeBlock: function(block) {
         //remove block an increase score
         block.destroy();
-
         if(!this.paused){
+          this.sound.play();
           this.score += 1;
         }
-
         this.labelScore.text = 'Score: ' + this.score;
+
 
         // allows an increase in speed every 5 points
         var nextLevel = false;
@@ -112,8 +116,8 @@ var mainState = {
 
         if (nextLevel) {
             if (this.timer.delay > this.timerResetPoint) {
-                this.blockGravity += 25;
-                this.blockSpeed += 50;
+                this.blockGravity += 5;
+                this.blockSpeed += 25;
                 this.timer.delay -= 50;
             } else {
                 //reset game loop to origin speed however speed of blocks falling remains the same.
@@ -122,7 +126,7 @@ var mainState = {
                     this.timerResetPoint -= 100;
                 } else {
                     //reset things to a manageable point when it gets impossible.
-                    this.timer.delay = 800;
+                    this.timer.delay = 600;
                     this.timerResetPoint = 500;
                 }
             }
@@ -179,6 +183,7 @@ var mainState = {
         if (this.playerHealth > 1) {
             this.playerHealth -= 1;
             this.labelHealth.text = 'Health: ' + this.playerHealth;
+            this.hit.play();
         } else {
             this.labelHealth.text = 'Health: ' + this.playerHealth;
             game.state.start('main');
@@ -210,26 +215,39 @@ var mainState = {
         var altRightKey = game.input.keyboard.addKey(Phaser.Keyboard.RIGHT);
 
         //left
-        if (leftKey.isDown || altLeftKey.isDown && this.player.x > 0) {
-          console.log('left: ',this.player.x ) ;
+        if(leftKey.isDown || altLeftKey.isDown){
+          if(this.player.x > 0){
             this.player.x -= this.playerSpeed;
-        } else if (leftKey.isDown && this.player.x < 0) {
-          console.log('left border');
+          }else {
             this.player.x = 400;
+          }
         }
+
         //right
-        if (rightKey.isDown || altRightKey.isDown && this.player.x < 400) {
+        if (rightKey.isDown || altRightKey.isDown) {
+          if(this.player.x < 400){
             this.player.x += this.playerSpeed;
-        } else if (rightKey.isDown && this.player.x > 0) {
+          } else {
             this.player.x = 0;
-        }
+          }
+}
+
         //up
-        if (upKey.isDown || altUpKey.isDown && this.player.y > 15) {
-            this.player.y -= this.playerSpeed;
+        if (upKey.isDown || altUpKey.isDown ) {
+            if(this.player.y > 15){
+              this.player.y -= this.playerSpeed;
+            } else {
+              this.player.y = 450;
+            }
         }
+
         //down
-        if (downKey.isDown || altDownKey.isDown && this.player.y < 425) {
+        if (downKey.isDown || altDownKey.isDown) {
+          if(this.player.y < 425){
             this.player.y += this.playerSpeed;
+          }else {
+            this.player.y = 0;
+          }
         }
         //
 
